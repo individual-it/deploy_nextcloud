@@ -29,7 +29,7 @@ services:
     volumes:
       - ./volumes/html:/var/www/html
     environment:
-      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_DOMAIN}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_DOMAIN} ${OPENPROJECT_DOMAIN}
       - OVERWRITEPROTOCOL=https
       - POSTGRES_HOST=nextcloud_db
       - POSTGRES_PASSWORD=nextcloud
@@ -41,18 +41,20 @@ services:
       - nextcloud_db
     networks:
       - nextcloud
+    extra_hosts:
+      - "${OPENPROJECT_DOMAIN}:172.17.0.1"
 
   cron:
-      <<: *restart_policy
-      <<: *limit_logging
-      image: nextcloud:26.0
-      volumes:
-        - ./volumes/html:/var/www/html
-      entrypoint: /cron.sh
-      depends_on:
-        - nextcloud
-      networks:
-        - nextcloud
+    <<: *restart_policy
+    <<: *limit_logging
+    image: nextcloud:26.0
+    volumes:
+      - ./volumes/html:/var/www/html
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud
+    networks:
+      - nextcloud
 
 networks:
   nextcloud:
