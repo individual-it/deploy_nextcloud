@@ -1,0 +1,58 @@
+version: "3.3"
+
+x-op-restart-policy: &restart_policy
+  restart: unless-stopped
+x-op-logging: &limit_logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+
+services:
+  nextcloud_db:
+    <<: *restart_policy
+    <<: *limit_logging
+    image: postgres:13.1
+    volumes:
+      - ./volumes/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_DB=nextcloud
+    networks:
+      - nextcloud
+
+  nextcloud:
+    <<: *restart_policy
+    <<: *limit_logging
+    image: nextcloud:26.0
+    volumes:
+      - ./volumes/html:/var/www/html
+    environment:
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_DOMAIN}
+      - OVERWRITEPROTOCOL=https
+      - POSTGRES_HOST=nextcloud_db
+      - POSTGRES_PASSWORD=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_DB=nextcloud
+    ports:
+      - "172.17.0.1:9092:80"
+    depends_on:
+      - nextcloud_db
+    networks:
+      - nextcloud
+
+  cron:
+      <<: *restart_policy
+      <<: *limit_logging
+      image: nextcloud:26.0
+      volumes:
+        - ./volumes/html:/var/www/html
+      entrypoint: /cron.sh
+      depends_on:
+        - nextcloud
+      networks:
+        - nextcloud
+
+networks:
+  nextcloud:
