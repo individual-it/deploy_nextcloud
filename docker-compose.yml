@@ -10,8 +10,7 @@ x-op-logging: &limit_logging
 
 services:
   nextcloud_db:
-    <<: *restart_policy
-    <<: *limit_logging
+    <<: [*restart_policy, *limit_logging]
     image: postgres:13.1
     volumes:
       - ./volumes/data:/var/lib/postgresql/data
@@ -23,8 +22,7 @@ services:
       - nextcloud
 
   nextcloud:
-    <<: *restart_policy
-    <<: *limit_logging
+    <<: [*restart_policy, *limit_logging]
     image: nextcloud:26.0
     volumes:
       - ./volumes/html:/var/www/html
@@ -45,8 +43,7 @@ services:
       - "${OPENPROJECT_DOMAIN}:172.17.0.1"
 
   cron:
-    <<: *restart_policy
-    <<: *limit_logging
+    <<: [*restart_policy, *limit_logging]
     image: nextcloud:26.0
     volumes:
       - ./volumes/html:/var/www/html
